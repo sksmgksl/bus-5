@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>버스 시간표와 게시판</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            text-align: center;
+            padding: 10px;
+        }
+        .container {
+            padding: 20px;
+        }
+        .bus-info {
+            margin-bottom: 20px;
+        }
+        .bus-info input, .bus-info button {
+            padding: 10px;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+        .bus-result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #e6f7e6;
+            border: 1px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>버스 시간표와 게시판</h1>
+</header>
+
+<div class="container">
+    <h2>버스 시간표 확인</h2>
+    <div class="bus-info">
+        <form action="/findBus" method="post">
+            <label for="end_time">수업 종료 시간 (HH:MM):</label>
+            <input type="text" id="end_time" name="endTime" required>
+            <button type="submit">버스 정보 확인</button>
+        </form>
+
+        <div class="bus-result">
+            <p th:text="${busInfo}"></p> <!-- 결과를 표시 -->
+        </div>
+    </div>
+</div>
+
+</body>
+</html>

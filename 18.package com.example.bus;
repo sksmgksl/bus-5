@@ -1,0 +1,82 @@
+package com.example.bus;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+@Controller
+public class BusController {
+
+    // 순천대에서 순천역까지의 시간 (17분)
+    private static final long TIME_TO_STATION = 17 * 60 * 1000; // 밀리초로 변환
+
+    // 버스 시간표
+    private static final Bus[] busData = {
+        new Bus(1, "08:45", 110, "21:30"),
+        new Bus(14, "09:22", 28, "22:20"),
+        new Bus(15, "08:15", 135, "20:40"),
+        new Bus(16, "09:15", 255, "17:30"),
+        new Bus(18, "09:05", 225, "17:50"),
+        new Bus(31, "09:05", 195, "19:15"),
+        new Bus(33, "08:30", 135, "19:15"),
+        new Bus(34, "09:10", 110, "21:30"),
+        new Bus(35, "10:10", 200, "21:10"),
+        new Bus(51, "11:00", 210, "17:40"),
+        new Bus(52, "09:52", 13, "20:30"),
+        new Bus(71, "09:48", 24, "22:35"),
+        new Bus(77, "09:20", 10, "21:20"),
+        new Bus(94, "10:00", 110, "22:30"),
+        new Bus(95, "09:20", 80, "22:00"),
+        new Bus(96, "09:00", 90, "22:05"),
+        new Bus(97, "09:50", 140, "20:30"),
+        new Bus(98, "08:50", 110, "20:45"),
+        new Bus(111, "09:05", 65, "21:05")
+    };
+
+    @GetMapping("/")
+    public String showForm() {
+        return "busForm"; // busForm.html을 반환
+    }
+
+    @PostMapping("/findBus")
+    public String findBestBus(@RequestParam String endTime, Model model) throws ParseException {
+        String busInfo = findBestBusInfo(endTime);
+        model.addAttribute("busInfo", busInfo);
+        return "busForm"; // 결과를 같은 페이지에 출력
+    }
+
+    private String findBestBusInfo(String endTime) throws ParseException {
+        Date endDate = new SimpleDateFormat("HH:mm").parse(endTime);
+        Bus bestBus = null;
+        long minWaitTime = Long.MAX_VALUE;
+
+        for (Bus bus : busData) {
+            Date startTime = new SimpleDateFormat("HH:mm").parse(bus.getStartTime());
+            Date lastTime = new SimpleDateFormat("HH:mm").parse(bus.getLastTime());
+            long interval = bus.getInterval() * 60 * 1000; // 밀리초로 변환
+
+            Date nextBus = (endDate.before(startTime)) ? startTime : new Date(startTime.getTime() + Math.ceil((endDate.getTime() - startTime.getTime()) / (double) interval) * interval);
+            if (nextBus.after(lastTime)) continue;
+
+            long waitTime = nextBus.getTime() - endDate.getTime();
+            if (waitTime < minWaitTime) {
+                minWaitTime = waitTime;
+                bestBus = bus;
+            }
+        }
+
+        if (bestBus != null) {
+            Date departureTime = new Date(endDate.getTime() + minWaitTime);
+            Date arrivalTime = new Date(departureTime.getTime() + TIME_TO_STATION); // 도착 시간 계산
+            return String.format("버스 %d를 타세요. 예상 출발 시간: %tT, 예상 순천역 도착 시간: %tT", bestBus.getId(), departureTime, arrivalTime);
+        } else {
+            return "이용 가능한 버스가 없습니다.";
+        }
+    }
+}
